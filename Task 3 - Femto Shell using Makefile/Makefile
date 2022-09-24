@@ -5,37 +5,49 @@ FLAG_COMPILE = -c
 FLAG_OUTPUT = -o
 OUTPUT_NAME = femtoshell
 REMOVE = rm -rf
-STATIC_LIBRARY_DIRECTORY = Lib/
+
+STATIC_LIBRARY_DIRECTORY = Static-Library
 STATIC_LIBRARY_NAME = libfemtoshell.a
-DYNAMIC_LIBRARY_DIRECTORY = Lib/
-DYNAMIC_LIBRARY_NAME = libfemtoshell.a
+STATIC_LIBRARY = $(STATIC_LIBRARY_DIRECTORY)/$(STATIC_LIBRARY_NAME)
+
+DYNAMIC_LIBRARY_DIRECTORY = Dynamic-Library
+DYNAMIC_OBJECTS = $(addprefix $(DYNAMIC_LIBRARY_DIRECTORY)/,$(OBJECTS))
+DYNAMIC_LIBRARY_NAME = libfemtoshell.so
+DYNAMIC_LIBRARY = $(DYNAMIC_LIBRARY_DIRECTORY)/$(DYNAMIC_LIBRARY_NAME)
 
 
 all: main.o $(OBJECTS)
 	$(COMPILER) $? $(FLAG_OUTPUT) $(OUTPUT_NAME)
 
-main.o: main.c
+%.o: %.c
 	$(COMPILER) $(FLAG_COMPILE) $? $(FLAG_OUTPUT) $@
 
-fact.o: fact.c
-	$(COMPILER) $(FLAG_COMPILE) $? $(FLAG_OUTPUT) $@
-
-fib.o: fib.c
-	$(COMPILER) $(FLAG_COMPILE) $? $(FLAG_OUTPUT) $@
-
-rand.o: rand.c
-	$(COMPILER) $(FLAG_COMPILE) $? $(FLAG_OUTPUT) $@
 
 
 # Create Static Library
-static: $(OBJECTS)
-	if [ ! -d $(STATIC_LIBRARY_DIRECTORY) ]; then mkdir $(STATIC_LIBRARY_DIRECTORY) ; fi
-	ar -rs $(STATIC_LIBRARY_DIRECTORY)$(STATIC_LIBRARY_NAME) $(OBJECTS)	
+static: $(STATIC_LIBRARY) main.c
 	$(COMPILER) main.c -o $(OUTPUT_NAME) --static -lfemtoshell -L $(STATIC_LIBRARY_DIRECTORY)
 
 
+$(STATIC_LIBRARY): $(OBJECTS)
+	if [ ! -d $(STATIC_LIBRARY_DIRECTORY) ]; then mkdir $(STATIC_LIBRARY_DIRECTORY) ; fi
+	ar -rs $(STATIC_LIBRARY) $(OBJECTS)
 
-# Create Dynamic Library				
+
+
+# Create Dynamic Library
+dynamic: $(DYNAMIC_LIBRARY) main.c
+	gcc main.c -o $(OUTPUT_NAME) -lfemtoshell -L $(DYNAMIC_LIBRARY_DIRECTORY)
+	 			
+
+
+$(DYNAMIC_LIBRARY_DIRECTORY)/%.o: %.c
+	if [ ! -d $(DYNAMIC_LIBRARY_DIRECTORY) ]; then mkdir $(DYNAMIC_LIBRARY_DIRECTORY) ; fi
+	$(COMPILER) $(FLAG_COMPILE) -fPIC $? $(FLAG_OUTPUT) $@
+
+$(DYNAMIC_LIBRARY): $(DYNAMIC_OBJECTS)
+	cd $(DYNAMIC_LIBRARY_DIRECTORY);$(COMPILER) -shared $(OBJECTS) -o $(DYNAMIC_LIBRARY_NAME)
+	
 
 
 clean: 
