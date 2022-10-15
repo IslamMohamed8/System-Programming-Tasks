@@ -1,12 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <errno.h>
 
 int main(int argc, char *argv[])
 {
 
-    errno = 0;
     /* The function itself will allocate a big enough buffer dynamically */
     char *currentDirectory = getcwd(NULL, 0);
 
