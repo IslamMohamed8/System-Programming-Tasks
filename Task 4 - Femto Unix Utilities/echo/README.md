@@ -8,5 +8,5 @@ gcc echo.c -o echo
 
 ## Run
 ```
-./echo
+./echo "Anything to print on screen"
 ```
